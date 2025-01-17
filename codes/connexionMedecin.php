@@ -1,7 +1,6 @@
-<?php include ("code/EnTete.php") ?>
+<?php include ("connexion_BDD.php") ?>
 
 <?php
-session_start();
 
 // Connexion à la base de données
 $host = 'localhost';
@@ -18,8 +17,8 @@ try {
 
 // Vérification des identifiants
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_connexion = $_POST['id_connexion'];
-    $mdp = $_POST['mdp'];
+    $id_connexion = $_POST['id_connexion']; // Variable pour récupérer l'identifiant saisi
+    $mdp = $_POST['mdp']; //variable pour récupérer le mot de passe saisi
     $message = '';
 
     // Requête pour vérifier l'utilisateur avec le statut de professionnel de santé
@@ -37,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     } else {
         // Identifiants incorrects
-        $message = "Les identifiants saisis sont incorrects. Vous ne pouvez accéder à l'espace dédié aux professionnels de santé.";
+        $message = "Les identifiants saisis sont incorrects. Vous ne pouvez pas accéder à l'espace dédié aux professionnels de santé.";
     }
 }
 ?>
@@ -65,6 +64,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 </body>
 </html>
-<?php include("code/PiedDePage.php") ?>
 
 
