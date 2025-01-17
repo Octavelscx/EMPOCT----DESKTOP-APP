@@ -1,0 +1,3 @@
+<?php 
+require 'fonctions.php';
+forcer_utilisateur_connecte();
