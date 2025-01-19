@@ -17,9 +17,9 @@
         </div>
         <!-- Section droite avec boutons -->
         <div class="right-section">
-            <button onclick="window.location.href='solution.php'">Découvrez notre solution</button>
             <button onclick="window.location.href='connexionMedecin.php'">Médecin ? Connectez-vous</button>
             <button onclick="window.location.href='downloadApp.php'">Patient ? Télécharger notre app</button>
+            <button onclick="window.location.href='connexionAdmin.php'">Administrateur</button>
         </div>
     </div>
 </body>

@@ -38,7 +38,7 @@ if (!isset($_SESSION['id_user'])) {
                         <a class="nav-link" href="#">Paramètres</a>
                     </li>
                 </ul>
-                <a href="logout.php" class="btn btn-outline-danger">Se déconnecter</a>
+                <a href="deconnexion.php" class="btn btn-outline-danger">Se déconnecter</a>
             </div>
         </div>
     </nav>
@@ -46,10 +46,9 @@ if (!isset($_SESSION['id_user'])) {
     <!-- Main Content -->
     <main class="container" style="margin-top: 80px;">
         <div class="bg-light p-5 rounded">
-            <h1 class="display-4">Bienvenue, <?php echo htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?> !</h1>
+            <h1 class="display-4"><?php echo htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?></h1>
             <p class="lead">Vous êtes connecté à l'espace professionnel de santé.</p>
             <hr class="my-4">
-            <p>Explorez les fonctionnalités disponibles ou gérez vos informations.</p>
             <a class="btn btn-primary btn-lg" href="#" role="button">Commencer</a>
         </div>
     </main>
