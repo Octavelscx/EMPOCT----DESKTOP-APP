@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bluetooth Connection & Graph</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Ajout de Chart.js via un CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Connect to a Bluetooth Device</h1>
+    <p>Click the button below to connect to a Bluetooth device and send a command.</p>
+
+    <!-- Boutons pour connecter l'appareil et envoyer des commandes -->
+    <button id="connect-btn">Connect to Bluetooth</button>
+    <button id="send-command-btn" disabled>Send Command</button>
+    
+    <!-- Zone pour les logs -->
+    <pre id="log-output">Logs will appear here...</pre>
+
+    <!-- Section pour le graphique -->
+    <div>
+      <h2>Live Data Chart</h2>
+      <canvas id="dataChart" width="400" height="200"></canvas>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
