@@ -1,60 +1,163 @@
 <?php
-session_start();
+// Connexion à la base de données
+$host = 'localhost';
+$dbname = 'empoct_app_medecin';
+$username = 'root';
+$password = '';
 
-// Vérifie si l'utilisateur est connecté
-if (!isset($_SESSION['id_user'])) {
-    header('Location: connexionMedecin.php');
-    exit();
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Erreur de connexion : " . $e->getMessage());
 }
-?>
 
+// Récupération des patients
+$query = $pdo->query("SELECT * FROM Patients");
+$patients = $query->fetchAll(PDO::FETCH_ASSOC);
+?>
 <!DOCTYPE html>
-<html lang="fr" data-bs-theme="auto">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Médecin</title>
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1CmrxMRARb6aLqgBO7uuGH8tzK3OClMZ1TLlMy0fYZQHcxZ5qI5QOeJd8OS6Fm1k" crossorigin="anonymous">
+    <title>Tableau de Bord Médecin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F5F5F5;
+        }
+        .navbar {
+            background-color: #0073E6;
+        }
+        .navbar a {
+            color: white;
+            font-weight: bold;
+        }
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        .custom-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        .planning {
+            background-color: #E7F3FF;
+        }
+        .visites {
+            background-color: #E8F5E9;
+        }
+        .compte {
+            background-color: #E3F2FD;
+        }
+        .card-header {
+            font-weight: bold;
+        }
+        .btn-custom {
+            border-radius: 20px;
+        }
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+        }
+    </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Espace Médecin</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">Accueil</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Patients</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Paramètres</a>
-                    </li>
-                </ul>
-                <a href="deconnexion.php" class="btn btn-outline-danger">Se déconnecter</a>
+    <div class="container mt-4">
+        <!-- Barre de navigation -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" href="#">Mon Tableau de Bord</a>
+                <div class="collapse navbar-collapse">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link active" href="#mon-espace">Mon espace</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#mes-patients">Mes patients</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#configuration">Configuration</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Section d'accueil -->
+        <div class="d-flex align-items-center mb-4">
+            <img src="https://via.placeholder.com/80" alt="Avatar" class="avatar me-3">
+            <h1 class="text-center">Bonjour Dr [Nom]</h1>
+        </div>
+
+        <!-- Section Planning -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card custom-card planning">
+                    <div class="card-header bg-primary text-white">Mon Planning</div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Lundi</th>
+                                    <th>Mardi</th>
+                                    <th>Mercredi</th>
+                                    <th>Jeudi</th>
+                                    <th>Vendredi</th>
+                                    <th>Samedi</th>
+                                    <th>Dimanche</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-danger">Mme Jean - 10h</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="text-danger">Mme Jane - 14h30</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="d-flex justify-content-between mt-2">
+                            <a href="prise_rdv.php" class="btn btn-primary btn-custom">Ajouter RDV</a>
+                            <a href="#" class="btn btn-warning btn-custom">Mettre à jour RDV</a>
+                            <a href="#" class="btn btn-danger btn-custom">Supprimer RDV</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dernières visites -->
+            <div class="col-md-6">
+                <div class="card custom-card visites">
+                    <div class="card-header bg-success text-white">Dernières visites</div>
+                    <div class="card-body">
+                        <?php foreach ($patients as $patient): ?>
+                            <div class="d-flex justify-content-between align-items-center p-2 mb-2" style="background-color: #B0D8F8; border-radius: 10px;">
+                                <span><?= htmlspecialchars($patient['nom_patient'] . ' ' . $patient['prenom_patient']) ?></span>
+                                <span><?= htmlspecialchars($patient['date_debut']) ?></span>
+                                <span>10h</span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
             </div>
         </div>
-    </nav>
 
-    <!-- Main Content -->
-    <main class="container" style="margin-top: 80px;">
-        <div class="bg-light p-5 rounded">
-            <h1 class="display-4"><?php echo htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?></h1>
-            <p class="lead">Vous êtes connecté à l'espace professionnel de santé.</p>
-            <hr class="my-4">
-            <a class="btn btn-primary btn-lg" href="#" role="button">Commencer</a>
+        <!-- Section Mon Compte -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card custom-card compte">
+                    <div class="card-header bg-info text-white">Mon Compte</div>
+                    <div class="card-body d-flex justify-content-evenly">
+                        <a href="#" class="btn btn-info btn-custom">Modifier mes informations</a>
+                        <a href="#" class="btn btn-danger btn-custom">Supprimer mon compte</a>
+                        <a href="#" class="btn btn-secondary btn-custom">Prise en main</a>
+                    </div>
+                </div>
+            </div>
         </div>
-    </main>
+    </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-tQ7AOsczhFGx1ZcmtRWIOV2z9WmrPLc5IPmFZlgEJG8w9LR7WwPYdKOMBOpr5Wx5" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
