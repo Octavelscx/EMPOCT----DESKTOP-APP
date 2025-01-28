@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> gestion_mesures </title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #EFEFEF;
+        }
+
+        /* Header */
+        header {
+            background-color: #0073E6;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        header a:hover {
+            text-decoration: underline;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background-color: #B0D8F8;
+            width: 25%;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            color: #0073E6;
+        }
+
+        .patient-info, .patients-list {
+            margin-bottom: 20px;
+        }
+
+        .patients-list button {
+            display: block;
+            background-color: #EFEFEF;
+            border: none;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .patients-list button:hover {
+            background-color: #D1E9FF;
+        }
+
+        /* Main content */
+        .main-content {
+            background-color: #FFFFFF;
+            width: 75%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .main-content h1 {
+            color: #0073E6;
+            font-size: 24px;
+        }
+
+        .chart {
+            margin-top: 20px;
+            background-color: #F5F5F5;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .stats {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .log {
+            background-color: #F5F5F5;
+            padding: 25px;
+            border: 1px solid #CCC;
+            border-radius: px;
+            height: 1000px;
+            overflow-y: scroll;
+            margin: 10px auto;
+            width: 80%;
+        }
+
+        .buttons {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #0073E6;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #CCC;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="#">Mon espace</a>
+        <a href="#">Mes patients</a>
+        <a href="#">Configuration</a>
+    </header>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>Patient actif</h2>
+            <div class="patient-info">
+                <p><strong>Nom :</strong></p>
+                <p><strong>Prénom :</strong></p>
+                <p><strong>Date dernière mesure :</strong></p>
+            </div>
+            <div class="patients-list">
+                <h3>Mes patients</h3>
+                <button>Jane Doe</button>
+                <button>Jane Doe</button>
+                <button>Jane Doe</button>
+                <button>Jane Doe</button>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="main-content">
+            <div class="buttons">
+                <button id="connect-btn">Connecter</button>
+                <button id="send-command-btn" disabled>Envoyer Commande</button>
+            </div>
+            <div class="log" id="log-output">
+                <!-- Logs apparaîtront ici -->
+            </div>
+            <h1>Mesures</h1>
+            <div class="chart">
+                <canvas id="dataChart" width="600" height="300"></canvas>
+            </div>
+            <div class="stats">
+                <div>Moyenne : Na</div>
+                <div>Minimum : Na</div>
+                <div>Maximum : Na</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const connectBtn = document.getElementById('connect-btn');
+        const sendCommandBtn = document.getElementById('send-command-btn');
+        const logOutput = document.getElementById('log-output');
+
+        
+
+        let intervalId = null; // Pour stocker l'ID de l'intervalle
+        let frequency = 2000; // Fréquence d'envoi par défaut (en millisecondes)
+
+        let device, server, txCharacteristic, rxCharacteristic;
+
+        // Tableau pour stocker les données reçues
+        const dataPoints = [];
+
+        // Initialiser le graphique avec Chart.js
+        const ctx = document.getElementById('dataChart').getContext('2d');
+        const dataChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Les labels seront ajoutés dynamiquement
+                datasets: [{
+                    label: 'Données reçues',
+                    data: dataPoints,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Temps'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'PPM'
+                        }
+                    }
+                }
+            }
+        });
+
+        function log(message) {
+            logOutput.textContent += `${message}\n`;
+        }
+
+        // Connexion à un dispositif Bluetooth
+        connectBtn.addEventListener('click', async () => {
+            try {
+                log('Searching for Bluetooth devices...');
+                device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e'] // UUID du service Nordic UART
+                });
+
+                log(`Device selected: ${device.name}`);
+                server = await device.gatt.connect();
+                log('Connected to device.');
+
+                // Gestion de la déconnexion
+                device.addEventListener('gattserverdisconnected', () => {
+                    log('Device disconnected.');
+                    stopSendingData();
+                    sendCommandBtn.disabled = true; // Désactiver le bouton d'envoi manuel
+                });
+
+                // Accéder au service Nordic UART
+                const service = await server.getPrimaryService('6e400001-b5a3-f393-e0a9-e50e24dcca9e');
+                log('Nordic UART service found.');
+
+                // Récupérer les caractéristiques TX et RX
+                txCharacteristic = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e'); // TX UUID
+                rxCharacteristic = await service.getCharacteristic('6e400003-b5a3-f393-e0a9-e50e24dcca9e'); // RX UUID
+                log('TX and RX characteristics found.');
+
+                // Activer les notifications pour RX
+                try {
+                    await rxCharacteristic.startNotifications();
+                    log('Notifications started for RX characteristic.');
+                } catch (error) {
+                    log(`Error starting notifications: ${error.message}`);
+                    return;
+                }
+
+                // Gérer les données reçues via RX
+                rxCharacteristic.addEventListener('characteristicvaluechanged', (event) => {
+                    const decoder = new TextDecoder();
+                    const receivedData = decoder.decode(event.target.value);
+                    log(`Data received: ${receivedData}`);
+
+                    const floatData = parseFloat(receivedData);
+                    if (!isNaN(floatData)) {
+                        updateChart(floatData / 1000); // Conversion PPB -> PPM
+                    } else {
+                        log('Error: Received data is not a valid float.');
+                    }
+                });
+                
+                // Envoyer l'heure actuelle une fois au début
+                await sendCurrentTime();
+
+                // Activer le bouton d'envoi manuel
+                sendCommandBtn.disabled = false;
+
+                // Démarrer l'envoi périodique de commandes
+                startSendingData();
+
+            } catch (error) {
+                log(`Error: ${error.message}`);
+            }
+        });
+        
+        
+        // Fonction pour envoyer une commande périodiquement
+        async function sendDataCommand() {
+        try {
+            if (!txCharacteristic) {
+                log('TX characteristic not found. Connect to the device first.');
+                return;
+            }
+
+            const encoder = new TextEncoder();
+            const command = encoder.encode('send data'); // Commande à envoyer
+            await txCharacteristic.writeValue(command);
+            log('Command sent: send data');
+        } catch (error) {
+            log(`Error sending command: ${error.message}`);
+        }
+        }
+
+        // Démarrer l'envoi périodique de commandes
+        function startSendingData() {
+            if (intervalId) {
+                clearInterval(intervalId); // Nettoyer tout intervalle précédent
+            }
+            intervalId = setInterval(sendDataCommand, frequency); // Envoyer à la fréquence définie
+            log(`Started sending "send data" every ${frequency / 1000} seconds.`);
+        }
+
+        // Arrêter l'envoi périodique
+        function stopSendingData() {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+                log('Stopped sending "send data".');
+            }
+        }
+        
+
+        // Fonction pour envoyer l'heure actuelle une seule fois
+        async function sendCurrentTime() {
+            try {
+                if (!txCharacteristic) {
+                    log('TX characteristic not found. Connect to the device first.');
+                    return;
+                }
+
+                // Obtenir l'heure actuelle
+                const now = new Date();
+                const formattedTime = now.toLocaleTimeString(); // Format HH:mm:ss
+
+                // Créer le message à envoyer
+                const message = `time:${formattedTime}`;
+                const encoder = new TextEncoder();
+                const command = encoder.encode(message);
+
+                // Envoyer l'heure actuelle au dispositif Bluetooth
+                await txCharacteristic.writeValue(command);
+
+                // Ajouter aux logs
+                log(`Current time sent: ${message}`);
+            } catch (error) {
+                log(`Error sending current time: ${error.message}`);
+            }
+        }
+
+
+        // Fonction pour mettre à jour le graphique
+        function updateChart(value) {
+            const now = new Date().toLocaleTimeString(); // Timestamp pour l'axe des X
+            dataChart.data.labels.push(now);
+            dataChart.data.datasets[0].data.push(value);
+
+            // Garde uniquement les 50 dernières données pour éviter de saturer le graphique
+            if (dataChart.data.labels.length > 50) {
+                dataChart.data.labels.shift();
+                dataChart.data.datasets[0].data.shift();
+            }
+
+            dataChart.update(); // Mettre à jour le graphique
+        }
+
+        // Envoyer une commande
+        sendCommandBtn.addEventListener('click', async () => {
+            try {
+                if (!txCharacteristic) {
+                    log('TX characteristic not found. Connect to the device first.');
+                    return;
+                }
+
+                const encoder = new TextEncoder();
+                const command = encoder.encode('Hello Feather'); // Exemple de commande à envoyer
+                await txCharacteristic.writeValue(command);
+                log('Command sent successfully: Hello Feather');
+            } catch (error) {
+                log(`Error sending command: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>
