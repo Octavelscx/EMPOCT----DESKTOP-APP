@@ -82,38 +82,7 @@
             font-size: 24px;
         }
 
-        .chart {
-            margin-top: 20px;
-            background-color: #F5F5F5;
-            padding: 20px;
-            border-radius: 10px;
-        }
-
-        .stats {
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-around;
-            font-size: 16px;
-            color: #333;
-        }
-
-        .log {
-            background-color: #F5F5F5;
-            padding: 25px;
-            border: 1px solid #CCC;
-            border-radius: px;
-            height: 1000px;
-            overflow-y: scroll;
-            margin: 10px auto;
-            width: 80%;
-        }
-
-        .buttons {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
+        /* Boutons */
         button {
             padding: 10px 20px;
             border: none;
@@ -121,12 +90,77 @@
             color: white;
             border-radius: 5px;
             cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
         }
 
-        button:disabled {
-            background-color: #CCC;
+        button:hover {
+            background-color: #005bb5;
+            transform: translateY(-2px);
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        button.disabled {
+            background-color: #ccc; /* Couleur grise */
+            color: #666; /* Texte grisé */
             cursor: not-allowed;
         }
+
+        button.active {
+            background-color: #28a745; /* Couleur verte */
+            color: white;
+            cursor: pointer;
+        }
+
+
+        /* Zone de logs */
+        .log {
+            background-color: rgba(245, 245, 245, 0.9);
+            font-size: 14px;
+            padding: 30px;
+            border: 1px solid #CCC;
+            border-radius: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            margin: 20px auto;
+            width: 90%;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Graphique */
+        .chart {
+            background-color: #FFFFFF;
+            border: 1px solid #DDD;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Statistiques */
+        .stats div {
+            background-color: #f7f9fc;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+            flex: 1;
+        }
+
+        .stats div:nth-child(1) {
+            color: #0073E6; /* Moyenne en bleu */
+        }
+
+        .stats div:nth-child(2) {
+            color: #28a745; /* Minimum en vert */
+        }
+
+        .stats div:nth-child(3) {
+            color: #dc3545; /* Maximum en rouge */
+        }
+
     </style>
 </head>
 <body>
@@ -145,20 +179,14 @@
                 <p><strong>Prénom :</strong></p>
                 <p><strong>Date dernière mesure :</strong></p>
             </div>
-            <div class="patients-list">
-                <h3>Mes patients</h3>
-                <button>Jane Doe</button>
-                <button>Jane Doe</button>
-                <button>Jane Doe</button>
-                <button>Jane Doe</button>
-            </div>
         </div>
 
         <!-- Main content -->
         <div class="main-content">
             <div class="buttons">
                 <button id="connect-btn">Connecter</button>
-                <button id="send-command-btn" disabled>Envoyer Commande</button>
+                <button id="send-command-btn">Envoyer Commande</button>
+                <button id="display-data-btn" disabled class="disabled">Afficher données</button>
             </div>
             <div class="log" id="log-output">
                 <!-- Logs apparaîtront ici -->
@@ -176,15 +204,69 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const modal = document.getElementById("patientModal");
+            const patientList = document.getElementById("patientList");
+        
+            // Ouverture automatique du modal
+            modal.style.display = "flex";
+        
+            // Requête AJAX pour récupérer les patients
+            fetch("get_patients.php")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error("Erreur:", data.error);
+                        return;
+                    }
+        
+                    data.forEach(patient => {
+                        const li = document.createElement("li");
+                        li.textContent = `${patient.nom_patient} ${patient.prenom_patient}`;
+                        li.dataset.id = patient.id_patient;
+                        li.dataset.nom = patient.nom_patient;
+                        li.dataset.prenom = patient.prenom_patient;
+                        li.dataset.date = patient.date_debut;
+        
+                        li.addEventListener("click", function() {
+                            // Met à jour les infos du patient sélectionné
+                            document.querySelector(".patient-info p:nth-child(1)").innerHTML = `<strong>Nom :</strong> ${this.dataset.nom}`;
+                            document.querySelector(".patient-info p:nth-child(2)").innerHTML = `<strong>Prénom :</strong> ${this.dataset.prenom}`;
+                            document.querySelector(".patient-info p:nth-child(3)").innerHTML = `<strong>Date dernière mesure :</strong> ${this.dataset.date}`;
+        
+                            // Ferme la fenêtre modale
+                            modal.style.display = "none";
+                        });
+        
+                        patientList.appendChild(li);
+                    });
+                })
+                .catch(error => console.error("Erreur AJAX:", error));
+        });
+    </script>
+        
+
     <script>
         const connectBtn = document.getElementById('connect-btn');
         const sendCommandBtn = document.getElementById('send-command-btn');
-        const logOutput = document.getElementById('log-output');
+        const displayDataBtn = document.getElementById('display-data-btn');
 
+        const logOutput = document.getElementById('log-output');
+        const ppbValues = []; // Stocke les valeurs de ppb
+
+        // Tableau pour stocker temporairement les données reçues
+        const storedData = [];
+
+
+        // Ajout un événement 'click' pour appeler la fonction 'displayStoredData'
+        displayDataBtn.addEventListener('click', displayStoredData);
         
 
-        let intervalId = null; // Pour stocker l'ID de l'intervalle
-        let frequency = 2000; // Fréquence d'envoi par défaut (en millisecondes)
+        /*let intervalId = null; // Pour stocker l'ID de l'intervalle
+        let frequency = 2000; // Fréquence d'envoi par défaut (en millisecondes)*/
 
         let device, server, txCharacteristic, rxCharacteristic;
 
@@ -228,6 +310,46 @@
             logOutput.textContent += `${message}\n`;
         }
 
+        /**
+         * Fonction pour stocker les données reçues
+         * @param {Object} data - Un objet JSON contenant les clés 'timestamp' et 'ppb'
+         */
+        function storeData(data) {
+            if ('timestamp' in data && 'ppb' in data) {
+                // Ajouter les données au tableau stocké
+                storedData.push({
+                    timestamp: data.timestamp,
+                    ppb: data.ppb
+                });
+                log(`Data stored: Timestamp = ${data.timestamp}, PPB = ${data.ppb}`);
+            } else {
+                log('Error: Keys "timestamp" or "ppb" not found in data.');
+            }
+        }
+
+        /**
+         * Fonction pour afficher les données stockées sur le graphique
+         */
+        function displayStoredData() {
+            /*for (const item of storedData) {
+                updateChart(item.timestamp, item.ppb);
+            }
+            log('All stored data displayed on the chart.');*/
+
+            if (storedData.length === 0) {
+                log('No data to display.');
+                return;
+            }
+            storedData.forEach(item => updateChart(item.timestamp, item.ppb));
+            log('All stored data displayed on the chart.');
+
+            // Réinitialiser le tableau après affichage
+            storedData.length = 0;
+    
+        }
+
+
+
         // Connexion à un dispositif Bluetooth
         connectBtn.addEventListener('click', async () => {
             try {
@@ -244,7 +366,7 @@
                 // Gestion de la déconnexion
                 device.addEventListener('gattserverdisconnected', () => {
                     log('Device disconnected.');
-                    stopSendingData();
+                    //stopSendingData();
                     sendCommandBtn.disabled = true; // Désactiver le bouton d'envoi manuel
                 });
 
@@ -270,30 +392,79 @@
                 rxCharacteristic.addEventListener('characteristicvaluechanged', (event) => {
                     const decoder = new TextDecoder();
                     const receivedData = decoder.decode(event.target.value);
+
+                    // Journaliser les données reçues
                     log(`Data received: ${receivedData}`);
 
-                    const floatData = parseFloat(receivedData);
-                    if (!isNaN(floatData)) {
-                        updateChart(floatData / 1000); // Conversion PPB -> PPM
-                    } else {
-                        log('Error: Received data is not a valid float.');
+                    // Diviser les données en utilisant '\n' comme séparateur
+                    const dataParts = receivedData.split('\n');
+                    
+                    for (const dataPart of dataParts){
+                        try {
+                            // Ignorer les segments vides
+                            if (!dataPart.trim()) continue;
+
+                            // Activer le bouton si on reçoit "final"
+                            if (dataPart.trim() === "final") {
+                                toggleButtonState(displayDataBtn, true);
+                                log('Received "final". Button activated.');
+                                continue;
+                            }
+
+                            // Convertir la chaîne JSON en objet
+                            const data = JSON.parse(dataPart);
+
+                            // Appeler la fonction pour stocker les données
+                            storeData(data);
+
+                        } catch (error) {
+                            log(`Error parsing received data: ${error.message}`);
+                        }
                     }
                 });
                 
                 // Envoyer l'heure actuelle une fois au début
                 await sendCurrentTime();
 
-                // Activer le bouton d'envoi manuel
-                sendCommandBtn.disabled = false;
+                // 🔹 Envoyer une seule fois 'MEASURE' après connexion 🔹
+                await sendDataCommand();
 
                 // Démarrer l'envoi périodique de commandes
-                startSendingData();
+                //startSendingData();
 
             } catch (error) {
                 log(`Error: ${error.message}`);
             }
         });
-        
+
+        // Associer le bouton "Envoyer Commande" à l'envoi de la commande "measure"
+        sendCommandBtn.addEventListener('click', async () => {
+            try {
+                // Vérifier si txCharacteristic est défini
+                if (!txCharacteristic) {
+                    log('TX characteristic not found. Connect to the device first.');
+                    return;
+                }
+
+                // Appeler la fonction sendDataCommand pour envoyer la commande "measure"
+                await sendDataCommand();
+
+                // Journaliser le succès
+                log('Command sent: measure');
+            } catch (error) {
+                log(`Error sending command: ${error.message}`);
+            }
+        });
+
+        // Ajouter un événement pour afficher les données stockées sur le graphique
+        displayDataBtn.addEventListener('click', () => {
+            displayStoredData(); // Appeler la fonction existante pour afficher les données
+
+            // Désactiver à nouveau le bouton après l'affichage
+            toggleButtonState(displayDataBtn, false);
+            log('Data displayed on chart and button deactivated.');;
+        });
+
         
         // Fonction pour envoyer une commande périodiquement
         async function sendDataCommand() {
@@ -304,31 +475,31 @@
             }
 
             const encoder = new TextEncoder();
-            const command = encoder.encode('send data'); // Commande à envoyer
+            const command = encoder.encode('_MEASURE\n'); // Commande à envoyer
             await txCharacteristic.writeValue(command);
-            log('Command sent: send data');
+            log('Command sent: MEASURE');
         } catch (error) {
             log(`Error sending command: ${error.message}`);
         }
         }
 
         // Démarrer l'envoi périodique de commandes
-        function startSendingData() {
+        /*function startSendingData() {
             if (intervalId) {
                 clearInterval(intervalId); // Nettoyer tout intervalle précédent
             }
             intervalId = setInterval(sendDataCommand, frequency); // Envoyer à la fréquence définie
             log(`Started sending "send data" every ${frequency / 1000} seconds.`);
-        }
+        }*/
 
         // Arrêter l'envoi périodique
-        function stopSendingData() {
+        /*function stopSendingData() {
             if (intervalId) {
                 clearInterval(intervalId);
                 intervalId = null;
                 log('Stopped sending "send data".');
             }
-        }
+        }*/
         
 
         // Fonction pour envoyer l'heure actuelle une seule fois
@@ -339,31 +510,30 @@
                     return;
                 }
 
-                // Obtenir l'heure actuelle
-                const now = new Date();
-                const formattedTime = now.toLocaleTimeString(); // Format HH:mm:ss
+                // Obtenir le timestamp actuel (nombre de millisecondes depuis 1970, divisé par 1000 pour avoir des secondes)
+                const timestamp = Math.floor(Date.now() / 1000);
 
                 // Créer le message à envoyer
-                const message = `time:${formattedTime}`;
+                const message = `${timestamp}`;
                 const encoder = new TextEncoder();
                 const command = encoder.encode(message);
 
-                // Envoyer l'heure actuelle au dispositif Bluetooth
+                // Envoyer le timestamp au dispositif Bluetooth
                 await txCharacteristic.writeValue(command);
 
                 // Ajouter aux logs
-                log(`Current time sent: ${message}`);
+                log(`Current timestamp sent: ${message}`);
             } catch (error) {
-                log(`Error sending current time: ${error.message}`);
+                log(`Error sending current timestamp: ${error.message}`);
             }
         }
 
 
         // Fonction pour mettre à jour le graphique
-        function updateChart(value) {
-            const now = new Date().toLocaleTimeString(); // Timestamp pour l'axe des X
-            dataChart.data.labels.push(now);
-            dataChart.data.datasets[0].data.push(value);
+        function updateChart(timestamp, value) {
+
+            dataChart.data.labels.push(timestamp); // Utiliser 'timestamp' pour l'axe des X
+            dataChart.data.datasets[0].data.push(value); // Utiliser 'ppb' pour l'axe des Y
 
             // Garde uniquement les 50 dernières données pour éviter de saturer le graphique
             if (dataChart.data.labels.length > 50) {
@@ -373,6 +543,7 @@
 
             dataChart.update(); // Mettre à jour le graphique
         }
+
 
         // Envoyer une commande
         sendCommandBtn.addEventListener('click', async () => {
@@ -390,6 +561,110 @@
                 log(`Error sending command: ${error.message}`);
             }
         });
+
+        function updateStats() {
+            if (ppbValues.length === 0) return;
+
+            const sum = ppbValues.reduce((a, b) => a + b, 0);
+            const average = (sum / ppbValues.length).toFixed(2); // Moyenne arrondie à 2 décimales
+            const min = Math.min(...ppbValues);
+            const max = Math.max(...ppbValues);
+
+            // Mettre à jour les éléments HTML
+            document.querySelector('.stats div:nth-child(1)').textContent = `Moyenne : ${average}`;
+            document.querySelector('.stats div:nth-child(2)').textContent = `Minimum : ${min}`;
+            document.querySelector('.stats div:nth-child(3)').textContent = `Maximum : ${max}`;
+        }
+
+        function toggleButtonState(button, enable) {
+            if (enable) {
+                button.disabled = false;
+                button.classList.remove('disabled');
+                button.classList.add('active');
+            } else {
+                button.disabled = true;
+                button.classList.remove('active');
+                button.classList.add('disabled');
+            }
+        }
+
+        // Ajouter un bouton temporaire pour tester
+        const simulateFinalBtn = document.createElement('button');
+        simulateFinalBtn.textContent = 'Simuler "final"';
+        simulateFinalBtn.style.marginTop = '10px';
+        document.querySelector('.buttons').appendChild(simulateFinalBtn);
+
+        // Fonction pour simuler la réception de "final"
+        function simulateFinalCommand() {
+            log('Simulating "final" command reception...');
+            
+            // Ajouter des données fictives
+            storedData.push(
+                { timestamp: '2025-01-01T12:00:00', ppb: 100 },
+                { timestamp: '2025-01-01T12:05:00', ppb: 200 },
+                { timestamp: '2025-01-01T12:10:00', ppb: 300 }
+            );
+            log('Added sample data to storedData.');
+
+            // Activer le bouton
+            toggleButtonState(displayDataBtn, true);
+        }
+
+        // Connecter le bouton temporaire à la fonction de simulation
+        simulateFinalBtn.addEventListener('click', simulateFinalCommand);
+
+
+
+
     </script>
+
+    <!-- Fenêtre modale -->
+    <div id="patientModal" class="modal">
+        <div class="modal-content">
+            <h2>Choisissez un patient</h2>
+            <ul id="patientList"></ul>
+        </div>
+    </div>
+
+    <style>
+    /* Style pour la fenêtre modale */
+        .modal {
+            display: flex;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 50%;
+            text-align: center;
+        }
+
+        .modal-content ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .modal-content li {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .modal-content li:hover {
+            background-color: #0073E6;
+            color: white;
+        }
+    </style>
+
 </body>
 </html>
