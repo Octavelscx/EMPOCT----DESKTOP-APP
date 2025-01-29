@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -179,6 +180,130 @@
                 <p><strong>Prénom :</strong></p>
                 <p><strong>Date dernière mesure :</strong></p>
             </div>
+
+            <div class="reports">
+                <h2>Rapports</h2>
+                <ul id="reportList">
+                    <!-- Les rapports du patient seront affichés ici -->
+                </ul>
+                <button id="addReportBtn">Rédiger un rapport</button>
+            </div>
+            
+            <!-- Fenêtre modale pour la rédaction du rapport -->
+            <div id="reportModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <h2>Rédiger un rapport</h2>
+                    <label for="reportDate">Date :</label>
+                    <input type="date" id="reportDate" required>
+                    <label for="reportText">Description :</label>
+                    <textarea id="reportText" rows="5" required></textarea>
+                    <button id="saveReportBtn">Enregistrer</button>
+                    <button id="closeReportModal">Annuler</button>
+                </div>
+            </div>
+            
+            <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const reportList = document.getElementById("reportList");
+                const reportModal = document.getElementById("reportModal");
+                const addReportBtn = document.getElementById("addReportBtn");
+                const closeReportModal = document.getElementById("closeReportModal");
+                const saveReportBtn = document.getElementById("saveReportBtn");
+                const reportDate = document.getElementById("reportDate");
+                const reportText = document.getElementById("reportText");
+                const patientInfo = document.querySelector(".patient-info");
+            
+                let currentPatientId = null;
+            
+                async function fetchPatientData(deviceId) {
+                    try {
+                        const response = await fetch(`get_patient_by_device.php?id_dispositif=${deviceId}`);
+                        const patient = await response.json();
+                        if (patient.id_patient) {
+                            currentPatientId = patient.id_patient;
+                            patientInfo.innerHTML = `<p><strong>Nom :</strong> ${patient.nom_patient}</p>
+                                                     <p><strong>Prénom :</strong> ${patient.prenom_patient}</p>
+                                                     <p><strong>Date dernière mesure :</strong> ${patient.date_debut}</p>`;
+                            loadReports(patient.id_patient);
+                        }
+                    } catch (error) {
+                        console.error("Erreur lors de la récupération des données patient:", error);
+                    }
+                }
+            
+                function loadReports(patientId) {
+                    fetch(`get_reports.php?id_patient=${patientId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            reportList.innerHTML = ""; 
+                            data.forEach(report => {
+                                const li = document.createElement("li");
+                                li.textContent = `${report.date}`;
+                                li.dataset.id = report.id_rapport;
+                                li.addEventListener("click", function() {
+                                    window.open(`view_report.php?id_rapport=${report.id_rapport}`, '_blank');
+                                });
+                                reportList.appendChild(li);
+                            });
+                        })
+                        .catch(error => console.error("Erreur lors du chargement des rapports:", error));
+                }
+            
+                addReportBtn.addEventListener("click", function() {
+                    reportModal.style.display = "flex";
+                });
+            
+                closeReportModal.addEventListener("click", function() {
+                    reportModal.style.display = "none";
+                });
+            
+                saveReportBtn.addEventListener("click", function() {
+                    if (!currentPatientId) {
+                        alert("Sélectionnez d'abord un patient.");
+                        return;
+                    }
+                    
+                    const date = reportDate.value;
+                    const description = reportText.value;
+                    if (!date || !description) {
+                        alert("Veuillez remplir tous les champs.");
+                        return;
+                    }
+                    
+                    fetch("save_report.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id_patient: currentPatientId, date, description })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert("Rapport enregistré avec succès.");
+                            reportModal.style.display = "none";
+                            loadReports(currentPatientId);
+                        } else {
+                            alert("Erreur lors de l'enregistrement du rapport.");
+                        }
+                    })
+                    .catch(error => console.error("Erreur lors de la sauvegarde du rapport:", error));
+                });
+            
+                document.getElementById('connect-btn').addEventListener('click', async () => {
+                    try {
+                        const device = await navigator.bluetooth.requestDevice({
+                            acceptAllDevices: true,
+                            optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e']
+                        });
+                        const server = await device.gatt.connect();
+                        fetchPatientData(device.name);
+                    } catch (error) {
+                        console.error("Erreur de connexion Bluetooth:", error);
+                    }
+                });
+            });
+            </script>
+            
+
         </div>
 
         <!-- Main content -->

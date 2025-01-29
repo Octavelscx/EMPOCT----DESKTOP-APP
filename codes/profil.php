@@ -5,11 +5,32 @@ $dbname = 'empoct_app_medecin';
 $username = 'root';
 $password = '';
 
+/*
+// Vérifie si l'utilisateur est connecté
+if (!isset($_SESSION['id_user'])) {
+    header('Location: connexionMedecin.php');
+    exit();
+}*/
+
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Erreur de connexion : " . $e->getMessage());
+}
+
+// Vérification de l'utilisateur connecté
+$nom_utilisateur = "";
+$prenom_utilisateur = "";
+if (isset($_SESSION['id_user'])) {
+    $stmt = $pdo->prepare("SELECT nom, prenom FROM User WHERE id_user = :id_user");
+    $stmt->bindParam(':id_user', $_SESSION['id_user'], PDO::PARAM_INT);
+    $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($user) {
+        $nom_utilisateur = htmlspecialchars($user['nom']);
+        $prenom_utilisateur = htmlspecialchars($user['prenom']);
+    }
 }
 
 // Récupération des patients
@@ -73,7 +94,7 @@ $patients = $query->fetchAll(PDO::FETCH_ASSOC);
                 <a class="navbar-brand" href="#">Mon Tableau de Bord</a>
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link active" href="#mon-espace">Mon espace</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="profil.php">Mon espace</a></li>
                         <li class="nav-item"><a class="nav-link" href="#mes-patients">Mes patients</a></li>
                         <li class="nav-item"><a class="nav-link" href="#configuration">Configuration</a></li>
                     </ul>
@@ -83,8 +104,8 @@ $patients = $query->fetchAll(PDO::FETCH_ASSOC);
 
         <!-- Section d'accueil -->
         <div class="d-flex align-items-center mb-4">
-            <img src="https://via.placeholder.com/80" alt="Avatar" class="avatar me-3">
-            <h1 class="text-center">Bonjour Dr [Nom]</h1>
+            <img src="icon_profil.jpg" alt="Avatar" class="avatar me-3">
+            <h1 class="text-center">Bonjour Dr. <?php echo $nom_utilisateur . ' ' . $prenom_utilisateur; ?></h1>
         </div>
 
         <!-- Section Planning -->
@@ -149,8 +170,7 @@ $patients = $query->fetchAll(PDO::FETCH_ASSOC);
                 <div class="card custom-card compte">
                     <div class="card-header bg-info text-white">Mon Compte</div>
                     <div class="card-body d-flex justify-content-evenly">
-                        <a href="#" class="btn btn-info btn-custom">Modifier mes informations</a>
-                        <a href="#" class="btn btn-danger btn-custom">Supprimer mon compte</a>
+                        <a href="modif_infos.php" class="btn btn-info btn-custom">Modifier mes informations</a>
                         <a href="#" class="btn btn-secondary btn-custom">Prise en main</a>
                     </div>
                 </div>

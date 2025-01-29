@@ -1,145 +1,145 @@
 <?php
 session_start();
 
-// Vérifie si l'utilisateur est connecté et qu'il est administrateur
-if (!isset($_SESSION['id_user']) || !isset($_SESSION['statut']) || $_SESSION['statut'] != 1) {
+// Connexion à la base de données
+$host = 'localhost';
+$dbname = 'empoct_app_medecin';
+$username = 'root';
+$password = '';
+
+/*
+// Vérifie si l'utilisateur est connecté
+if (!isset($_SESSION['id_user'])) {
     header('Location: connexionAdmin.php');
     exit();
+}*/
+
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Erreur de connexion à la base de données : " . $e->getMessage());
 }
 
-include("connexion_BDD.php");
 
-// Gestion des actions (ajouter ou supprimer un médecin)
-$message = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action']) && $_POST['action'] === 'add') {
-        // Ajouter un médecin
-        $nom = $_POST['nom'];
-        $prenom = $_POST['prenom'];
-        $id_connexion = $_POST['id_connexion'];
-        $mdp = password_hash($_POST['mdp'], PASSWORD_DEFAULT); // Hacher le mot de passe
 
-        $stmt = $pdo->prepare("INSERT INTO User (nom, prenom, id_connexion, mdp, statut) VALUES (:nom, :prenom, :id_connexion, :mdp, 0)");
-        $stmt->execute([
-            ':nom' => $nom,
-            ':prenom' => $prenom,
-            ':id_connexion' => $id_connexion,
-            ':mdp' => $mdp
-        ]);
-        $message = "Le compte médecin a été créé avec succès.";
-    } elseif (isset($_POST['action']) && $_POST['action'] === 'delete') {
-        // Supprimer un médecin
-        $id_user = $_POST['id_user'];
-
-        $stmt = $pdo->prepare("DELETE FROM User WHERE id_user = :id_user AND statut = 0");
-        $stmt->execute([':id_user' => $id_user]);
-        $message = "Le compte médecin a été supprimé avec succès.";
+// Vérification de l'utilisateur connecté
+$nom_utilisateur = "";
+$prenom_utilisateur = "";
+if (isset($_SESSION['id_user'])) {
+    $stmt = $pdo->prepare("SELECT nom, prenom FROM User WHERE id_user = :id_user");
+    $stmt->bindParam(':id_user', $_SESSION['id_user'], PDO::PARAM_INT);
+    $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($user) {
+        $nom_utilisateur = htmlspecialchars($user['nom']);
+        $prenom_utilisateur = htmlspecialchars($user['prenom']);
     }
 }
 
-// Récupérer la liste des médecins
-$stmt = $pdo->prepare("SELECT * FROM User WHERE statut = 0");
-$stmt->execute();
-$medecins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Récupération des professionnels de santé
+$stmt = $pdo->query("SELECT id_user, nom, prenom FROM User WHERE statut = 0");
+$professionnels = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
-<html lang="fr" data-bs-theme="auto">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Administrateur</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1CmrxMRARb6aLqgBO7uuGH8tzK3OClMZ1TLlMy0fYZQHcxZ5qI5QOeJd8OS6Fm1k" crossorigin="anonymous">
+    <title>Tableau de Bord Administrateur</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F5F5F5;
+        }
+        .navbar {
+            background-color: #0073E6;
+        }
+        .navbar a {
+            color: white;
+            font-weight: bold;
+        }
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        .custom-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+        }
+    </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Espace Administrateur</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">Accueil</a>
-                    </li>
-                </ul>
-                <a href="deconnexion.php" class="btn btn-outline-danger">Se déconnecter</a>
+    <div class="container mt-4">
+        <!-- Barre de navigation -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" href="#">Mon Tableau de Bord</a>
+                <div class="collapse navbar-collapse">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link active" href="profilAdmin.php">Mon espace</a></li>
+                        <li class="nav-item"><a class="nav-link" href="gererComptes.php">Gérer les comptes</a></li>
+                    </ul>
+                </div>
             </div>
+        </nav>
+        <div class="d-flex align-items-center mb-4">
+            <img src="icon_profil.jpg" alt="Avatar" class="avatar me-3">
+            <h1 class="text-center">Bonjour <?php echo $nom_utilisateur . ' ' . $prenom_utilisateur; ?></h1>
         </div>
-    </nav>
+        
+        <div class="row mt-4">
 
-    <!-- Main Content -->
-    <main class="container" style="margin-top: 80px;">
-        <div class="bg-light p-5 rounded">
-            <h1 class="display-4">Espace Administrateur</h1>
-            <p class="lead">Bienvenue, <?php echo htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?>.</p>
-            <hr class="my-4">
+            <!-- Section Mon Compte -->
+            <div class="col-md-6">
+                <div class="card custom-card visites">
+                    <div class="card-header bg-success text-white">Mon compte</div>
+                    <div class="card-body">
+                        <p>Nom : <?php echo $nom_utilisateur; ?></p>
+                        <p>Prénom : <?php echo $prenom_utilisateur; ?></p>
+                    </div>
+                    <div class="card-body d-flex justify-content-evenly">
+                            <a href="modif_infos.php" class="btn btn-info btn-custom">Modifier mes informations</a>
+                    </div>
+                </div>
+            </div>
 
-            <!-- Message -->
-            <?php if (!empty($message)) : ?>
-                <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
-            <?php endif; ?>
+            <!-- Section Liste des professionnels de santé -->
+                <div class="col-md-6">
+                    <div class="card custom-card planning">
+                        <div class="card-header bg-primary text-white">Liste des professionnels de santé</div>
+                        <div class="card-body">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>N° compte</th>
+                                        <th>Nom</th>
+                                        <th>Prénom</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($professionnels as $pro) : ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($pro['id_user']); ?></td>
+                                            <td><?php echo htmlspecialchars($pro['nom']); ?></td>
+                                            <td><?php echo htmlspecialchars($pro['prenom']); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Liste des médecins -->
-            <h2>Liste des Médecins</h2>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Nom</th>
-                        <th>Prénom</th>
-                        <th>Identifiant</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($medecins as $medecin) : ?>
-                        <tr>
-                            <td><?php echo $medecin['id_user']; ?></td>
-                            <td><?php echo htmlspecialchars($medecin['nom']); ?></td>
-                            <td><?php echo htmlspecialchars($medecin['prenom']); ?></td>
-                            <td><?php echo htmlspecialchars($medecin['id_connexion']); ?></td>
-                            <td>
-                                <form action="profilAdmin.php" method="POST" style="display: inline;">
-                                    <input type="hidden" name="id_user" value="<?php echo $medecin['id_user']; ?>">
-                                    <input type="hidden" name="action" value="delete">
-                                    <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-
-            <!-- Formulaire d'ajout de médecin -->
-            <h2>Créer un Compte Médecin</h2>
-            <form action="profilAdmin.php" method="POST">
-                <input type="hidden" name="action" value="add">
-                <div class="mb-3">
-                    <label for="nom" class="form-label">Nom</label>
-                    <input type="text" class="form-control" id="nom" name="nom" required>
-                </div>
-                <div class="mb-3">
-                    <label for="prenom" class="form-label">Prénom</label>
-                    <input type="text" class="form-control" id="prenom" name="prenom" required>
-                </div>
-                <div class="mb-3">
-                    <label for="id_connexion" class="form-label">Identifiant</label>
-                    <input type="text" class="form-control" id="id_connexion" name="id_connexion" required>
-                </div>
-                <div class="mb-3">
-                    <label for="mdp" class="form-label">Mot de Passe</label>
-                    <input type="password" class="form-control" id="mdp" name="mdp" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Créer</button>
-            </form>
         </div>
-    </main>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-tQ7AOsczhFGx1ZcmtRWIOV2z9WmrPLc5IPmFZlgEJG8w9LR7WwPYdKOMBOpr5Wx5" crossorigin="anonymous"></script>
+    </div>
 </body>
 </html>
