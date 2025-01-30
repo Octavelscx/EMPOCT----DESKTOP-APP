@@ -24,11 +24,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $query->execute([$id_rdv]);
 
         // Redirection avec un message de succès
-        header("Location: accueil_medecin.php?success=rdv_deleted");
+        header("Location: profil.php?success=rdv_deleted");
         exit();
     } else {
         // Redirection avec un message d'erreur
-        header("Location: accueil_medecin.php?error=no_rdv_selected");
+        header("Location: profil.php?error=no_rdv_selected");
         exit();
     }
 }

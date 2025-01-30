@@ -27,11 +27,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $query->execute([$id_patient, $date_rdv, $heure, $description]);
 
         // Redirection avec un message de succÃ¨s
-        header("Location: accueil_medecin.php?success=rdv_added");
+        header("Location: profil.php?success=rdv_added");
         exit();
     } else {
         // Redirection avec un message d'erreur
-        header("Location: accueil_medecin.php?error=missing_fields");
+        header("Location: profil.php?error=missing_fields");
         exit();
     }
 }

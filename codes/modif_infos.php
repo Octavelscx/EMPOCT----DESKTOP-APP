@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modify_user'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de Bord Administrateur</title>
+    <title>Tableau 'mon espace' Medecin</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
         body {
@@ -110,14 +110,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modify_user'])) {
         <!-- Barre de navigation -->
         <nav class="navbar navbar-expand-lg">
             <div class="container">
-                <a class="navbar-brand" href="#">Mon Tableau de Bord</a>
+                <a class="navbar-brand" href="profil.php">Mon Tableau de Bord</a>
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link active" href="<?= $profilPage; ?>">Mon espace</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="gererComptes.php">Gérer les comptes</a>
+                            <a class="nav-link active" href="modif_infos.php">Mon espace</a>
                         </li>
                     </ul>
                 </div>

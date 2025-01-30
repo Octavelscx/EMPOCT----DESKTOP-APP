@@ -1,5 +1,5 @@
 <?php
-// Connexion Ã  la base de donnÃ©es
+// Connexion à  la base de données
 $host = 'localhost';
 $dbname = 'empoct_app_medecin';
 $username = 'root';
@@ -9,7 +9,7 @@ try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // RÃ©cupÃ©rer les patients
+    // Récupérer les patients
     $stmt = $pdo->query("SELECT id_patient, nom_patient, prenom_patient, date_debut FROM patients");
     $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

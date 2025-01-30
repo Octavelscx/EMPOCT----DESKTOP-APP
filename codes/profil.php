@@ -130,10 +130,10 @@ foreach ($appointments as $appointment) {
         <!-- Barre de navigation -->
         <nav class="navbar navbar-expand-lg">
             <div class="container">
-                <a class="navbar-brand" href="#">Mon Tableau de Bord</a>
+                <a class="navbar-brand" class="nav-link active" href="profil.php">Mon Tableau de Bord</a>
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link active" href="accueil_medecin.php">Mon espace</a></li>
+                        <li class="nav-item"><a class="nav-link" href="modif_infos.php">Mon espace</a></li>
                         <li class="nav-item"><a class="nav-link" href="gestion_mesures.html">Mes patients</a></li>
                         <li class="nav-item"><a class="nav-link" href="configuration.html">Configuration</a></li>
                     </ul>
