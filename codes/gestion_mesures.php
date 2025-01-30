@@ -540,6 +540,10 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                     timestamp: data.timestamp,
                     ppb: data.ppb
                 });
+
+                // Ajouter la valeur au tableau pour updateStats
+                ppbValues.push(data.ppb/1000);
+
                 log(`Data stored: Timestamp = ${data.timestamp}, PPB = ${data.ppb}`);
             } else {
                 log('Error: Keys "timestamp" or "ppb" not found in data.');
@@ -561,6 +565,9 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
             }
             storedData.forEach(item => updateChart(item.timestamp, item.ppb));
             log('All stored data displayed on the chart.');
+
+            // Mettre à jour les statistiques après affichage
+            updateStats();
 
             // Réinitialiser le tableau après affichage
             storedData.length = 0;
