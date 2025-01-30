@@ -227,9 +227,9 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
 </head>
 <body>
     <header>
-        <a href="#">Mon espace</a>
-        <a href="#">Mes patients</a>
-        <a href="#">Configuration</a>
+        <a href="profil.php">Mon tableau de bord</a>
+        <a href="gestion_mesures.html">Mes patients</a>
+        <a href="configuration.html">Configuration</a>
     </header>
 
     <div class="container">
@@ -623,10 +623,10 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                             // Ignorer les segments vides
                             if (!dataPart.trim()) continue;
 
-                            // Activer le bouton si on reçoit "final"
-                            if (dataPart.trim() === "final") {
+                            // Activer le bouton si on reçoit "END"
+                            if (dataPart.trim() === "END") {
                                 toggleButtonState(displayDataBtn, true);
-                                log('Received "final". Button activated.');
+                                log('Received "END". Button activated.');
                                 continue;
                             }
 
@@ -748,20 +748,34 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
         }
 
 
-        // Fonction pour mettre à jour le graphique
+       // Fonction pour mettre à jour le graphique
         function updateChart(timestamp, value) {
+            // Convertir le timestamp UNIX en date lisible
+            const date = new Date(timestamp * 1000); // Convertit le timestamp en millisecondes
 
-            dataChart.data.labels.push(timestamp); // Utiliser 'timestamp' pour l'axe des X
-            dataChart.data.datasets[0].data.push(value); // Utiliser 'ppb' pour l'axe des Y
+            // Formater la date en "JJ/MM/AAAA HH:MM"
+            const formattedDate = date.toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            }) + " " + date.toLocaleTimeString("fr-FR", {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
 
-            // Garde uniquement les 50 dernières données pour éviter de saturer le graphique
+            // Ajouter la date formatée comme label
+            dataChart.data.labels.push(formattedDate);
+            dataChart.data.datasets[0].data.push(value/1000); // divison par 1000 car valeur recu en PPB et non en PPM
+
+            // Garder uniquement les 50 dernières entrées pour éviter la surcharge du graphique
             if (dataChart.data.labels.length > 50) {
                 dataChart.data.labels.shift();
                 dataChart.data.datasets[0].data.shift();
             }
 
-            dataChart.update(); // Mettre à jour le graphique
+            dataChart.update();
         }
+
 
 
         // Envoyer une commande
@@ -807,32 +821,7 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
             }
         }
 
-        // Ajouter un bouton temporaire pour tester
-        const simulateFinalBtn = document.createElement('button');
-        simulateFinalBtn.textContent = 'Simuler "final"';
-        simulateFinalBtn.style.marginTop = '10px';
-        document.querySelector('.buttons').appendChild(simulateFinalBtn);
-
-        // Fonction pour simuler la réception de "final"
-        function simulateFinalCommand() {
-            log('Simulating "final" command reception...');
-            
-            // Ajouter des données fictives
-            storedData.push(
-                { timestamp: '2025-01-01T12:00:00', ppb: 100 },
-                { timestamp: '2025-01-01T12:05:00', ppb: 200 },
-                { timestamp: '2025-01-01T12:10:00', ppb: 300 }
-            );
-            log('Added sample data to storedData.');
-
-            // Activer le bouton
-            toggleButtonState(displayDataBtn, true);
-        }
-
-        // Connecter le bouton temporaire à la fonction de simulation
-        simulateFinalBtn.addEventListener('click', simulateFinalCommand);
-
-
+        
 
 
     </script>
