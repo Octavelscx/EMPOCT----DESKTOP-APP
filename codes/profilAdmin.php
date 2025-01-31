@@ -92,7 +92,7 @@ $professionnels = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </nav>
         <div class="d-flex align-items-center mb-4">
             <img src="icon_profil.jpg" alt="Avatar" class="avatar me-3">
-            <h1 class="text-center">Bonjour <?php echo $nom_utilisateur . ' ' . $prenom_utilisateur; ?></h1>
+            <h1 class="text-center">Bienvenu sur l'espace administrateur</h1>
         </div>
         
         <div class="row mt-4">

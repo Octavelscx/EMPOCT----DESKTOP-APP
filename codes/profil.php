@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 // Connexion à la base de données
 $host = 'localhost';
 $dbname = 'empoct_app_medecin';
@@ -11,6 +13,21 @@ try {
 } catch (PDOException $e) {
     die("Erreur de connexion : " . $e->getMessage());
 }
+
+// Vérification de l'utilisateur connecté
+$nom_utilisateur = "";
+$prenom_utilisateur = "";
+if (isset($_SESSION['id_user'])) {
+    $stmt = $pdo->prepare("SELECT nom, prenom FROM User WHERE id_user = :id_user");
+    $stmt->bindParam(':id_user', $_SESSION['id_user'], PDO::PARAM_INT);
+    $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($user) {
+        $nom_utilisateur = htmlspecialchars($user['nom']);
+        $prenom_utilisateur = htmlspecialchars($user['prenom']);
+    }
+}
+
 
 // Récupération des patients
 $query = $pdo->query("SELECT * FROM Patients");
@@ -144,7 +161,7 @@ foreach ($appointments as $appointment) {
         <!-- Section d'accueil -->
         <div class="d-flex align-items-center mb-4">
             <img src="https://cdn-icons-png.flaticon.com/512/3541/3541871.png" alt="Avatar" class="avatar me-3">
-            <h1 class="text-center">Bonjour Dr </h1>
+            <h1 class="text-center">Bonjour Dr. <?= $nom_utilisateur ? $nom_utilisateur : "Non défini" ?> </h1>
         </div>
 
         <!-- Section Planning -->
@@ -248,6 +265,10 @@ foreach ($appointments as $appointment) {
             <div class="col-md-12">
                 <div class="card custom-card compte">
                     <div class="card-header bg-info text-white">Mon Compte</div>
+                    <div class="card-body">
+                        <p>Nom : <?= $nom_utilisateur ? $nom_utilisateur : "Non défini" ?></p>
+                        <p>Prénom : <?= $prenom_utilisateur ? $prenom_utilisateur : "Non défini" ?></p>
+                    </div>
                     <div class="card-body d-flex justify-content-evenly">
                         <a href="modif_infos.php" class="btn btn-info btn-custom">Modifier mes informations</a>
                         <a href="#" class="btn btn-secondary btn-custom">Prise en main</a>

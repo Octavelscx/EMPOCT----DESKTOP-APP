@@ -5,6 +5,11 @@ $dbname = "empoct_app_medecin";
 $username = "root";
 $password = "";
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -36,27 +41,7 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
 }
 
 // 🔍 Récupération des données envoyées
-$data = json_decode(file_get_contents("php://input"), true);
-file_put_contents("debug_log.txt", print_r($data, true)); // Sauvegarde des données reçues pour debug
 
-if (isset($data['id_patient'], $data['date'], $data['description'])) {
-    $id_patient = $data['id_patient'];
-    $date = $data['date'];
-    $description = $data['description'];
-
-    $stmt = $pdo->prepare("INSERT INTO rapport (id_patient, date, description) VALUES (:id_patient, :date, :description)");
-    $stmt->bindParam(':id_patient', $id_patient, PDO::PARAM_INT);
-    $stmt->bindParam(':date', $date, PDO::PARAM_STR);
-    $stmt->bindParam(':description', $description, PDO::PARAM_STR);
-
-    if ($stmt->execute()) {
-        echo json_encode(["success" => true, "message" => "Rapport enregistré avec succès"]);
-    } else {
-        echo json_encode(["success" => false, "message" => "Erreur lors de l'enregistrement"]);
-    }
-} else {
-    echo json_encode(["success" => false, "message" => "Données manquantes", "reçu" => $data]);
-}
 
 ?>
 
@@ -311,7 +296,7 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                 // Chargement des rapports du patient sélectionné
                 function loadReports(patientId) {
                     currentPatientId = patientId;
-                    fetch(`get_reports.php?id_patient=${patientId}`)
+                    fetch(`./get_reports.php?id_patient=${patientId}`)
                         .then(response => response.json())
                         .then(data => {
                             reportList.innerHTML = ""; 
@@ -356,7 +341,7 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                         return;
                     }
                     
-                    fetch("save_report.php", {
+                    fetch("./save_report.php", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ id_patient: currentPatientId, date, description })

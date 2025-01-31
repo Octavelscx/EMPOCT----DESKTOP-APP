@@ -41,8 +41,9 @@ if (isset($_SESSION['id_user'])) {
         $statut = $user['statut'];
         $profilPage = ($statut == 1) ? "profilAdmin.php" : "profil.php";
     } else {
-        $profilPage = "index.php"; // Redirection par défaut si l'utilisateur n'existe pas
+        $profilPage = "index.php"; // Redirection par défaut
     }
+
 
 // Gestion de la modification des informations de l'utilisateur connecté
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modify_user'])) {
@@ -57,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modify_user'])) {
             }
             $stmt = $pdo->prepare("UPDATE user SET $champ_a_modifier = :nouvelle_valeur WHERE id_user = :id_user");
             $stmt->bindParam(':nouvelle_valeur', $nouvelle_valeur, PDO::PARAM_STR);
-            $stmt->bindParam(':id_user', $id_user_session, PDO::PARAM_INT);
+            $stmt->bindParam(':id_user', $_SESSION['id_user'], PDO::PARAM_INT);
             $stmt->execute();
 
             $successMessage = "Vos informations ont été mises à jour avec succès.";
