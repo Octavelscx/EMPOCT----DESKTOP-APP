@@ -7,13 +7,6 @@ $dbname = 'empoct_app_medecin';
 $username = 'root';
 $password = '';
 
-/*
-// Vérifie si l'utilisateur est connecté
-if (!isset($_SESSION['id_user'])) {
-    header('Location: index.php');
-    exit();
-} */
-
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -21,6 +14,11 @@ try {
     die("Erreur de connexion à la base de données : " . $e->getMessage());
 }
 
+// Vérifie si l'utilisateur est connecté
+if (!isset($_SESSION['id_user'])) {
+    header('Location: index.php');
+    exit();
+}
 
 
 // Vérification de l'utilisateur connecté
@@ -41,8 +39,9 @@ if (isset($_SESSION['id_user'])) {
         $statut = $user['statut'];
         $profilPage = ($statut == 1) ? "profilAdmin.php" : "profil.php";
     } else {
-        $profilPage = "index.php"; // Redirection par défaut si l'utilisateur n'existe pas
+        $profilPage = "index.php"; // Redirection par défaut
     }
+
 
 // Gestion de la modification des informations de l'utilisateur connecté
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modify_user'])) {
@@ -57,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modify_user'])) {
             }
             $stmt = $pdo->prepare("UPDATE user SET $champ_a_modifier = :nouvelle_valeur WHERE id_user = :id_user");
             $stmt->bindParam(':nouvelle_valeur', $nouvelle_valeur, PDO::PARAM_STR);
-            $stmt->bindParam(':id_user', $id_user_session, PDO::PARAM_INT);
+            $stmt->bindParam(':id_user', $_SESSION['id_user'], PDO::PARAM_INT);
             $stmt->execute();
 
             $successMessage = "Vos informations ont été mises à jour avec succès.";
@@ -114,7 +113,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modify_user'])) {
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link active" href="modif_infos.php">Mon espace</a>
+                            <li class="nav-item">
+                                <a class="nav-link" href="deconnexion.php" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Déconnexion</a>
+                            </li>
                         </li>
                     </ul>
                 </div>
