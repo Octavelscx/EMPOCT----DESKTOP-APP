@@ -209,6 +209,8 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
             flex: 1;
         }
 
+        
+
         .stats div:nth-child(1) {
             color: #0073E6; /* Moyenne en bleu */
         }
@@ -408,8 +410,15 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
         <div class="main-content">
             <div class="buttons">
                 <button id="connect-btn">Connecter</button>
-                <button id="send-command-btn">Envoyer Commande</button>
+                <button id="send-info-btn"> Infos Dispositif</button>
                 <button id="display-data-btn" disabled class="disabled">Afficher données</button>
+
+                <div class="device-info">
+                    <h2>Informations du Dispositif</h2>
+                    <p><strong>Espace restant :</strong> <span id="device-space">--</span> %</p>
+                    <p><strong>Batterie :</strong> <span id="device-battery">--</span> %</p>
+                </div>
+
             </div>
             <div class="log" id="log-output">
                 <!-- Logs apparaîtront ici -->
@@ -474,7 +483,7 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
 
     <script>
         const connectBtn = document.getElementById('connect-btn');
-        const sendCommandBtn = document.getElementById('send-command-btn');
+        const sendInfoBtn = document.getElementById('send-info-btn');
         const displayDataBtn = document.getElementById('display-data-btn');
 
         const logOutput = document.getElementById('log-output');
@@ -597,7 +606,7 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                 device.addEventListener('gattserverdisconnected', () => {
                     log('Device disconnected.');
                     //stopSendingData();
-                    sendCommandBtn.disabled = true; // Désactiver le bouton d'envoi manuel
+                    sendInfoBtn.disabled = true; // Désactiver le bouton d'envoi manuel
                 });
 
                 // Accéder au service Nordic UART
@@ -647,6 +656,16 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                             // Appeler la fonction pour stocker les données
                             storeData(data);
 
+                            // Vérifier si les données correspondent aux informations du dispositif
+                            if (data.space !== undefined && data.battery !== undefined) {
+                                document.getElementById('device-space').textContent = data.space;
+                                document.getElementById('device-battery').textContent = data.battery;
+
+                                log(`Espace restant : ${data.space} %`);
+                                log(`Batterie : ${data.battery} %`);
+                            }
+
+
                         } catch (error) {
                             log(`Error parsing received data: ${error.message}`);
                         }
@@ -668,7 +687,7 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
         });
 
         // Associer le bouton "Envoyer Commande" à l'envoi de la commande "measure"
-        sendCommandBtn.addEventListener('click', async () => {
+        sendInfoBtn.addEventListener('click', async () => {
             try {
                 
 
@@ -805,22 +824,7 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
 
 
 
-        // Envoyer une commande
-        sendCommandBtn.addEventListener('click', async () => {
-            try {
-                if (!txCharacteristic) {
-                    log('TX characteristic not found. Connect to the device first.');
-                    return;
-                }
-
-                const encoder = new TextEncoder();
-                const command = encoder.encode('Hello Feather'); // Exemple de commande à envoyer
-                await txCharacteristic.writeValue(command);
-                log('Command sent successfully: Hello Feather');
-            } catch (error) {
-                log(`Error sending command: ${error.message}`);
-            }
-        });
+        
 
         function updateStats() {
             if (ppbValues.length === 0) return;
