@@ -663,17 +663,16 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
         // Associer le bouton "Envoyer Commande" à l'envoi de la commande "measure"
         sendCommandBtn.addEventListener('click', async () => {
             try {
-                // Vérifier si txCharacteristic est défini
-                if (!txCharacteristic) {
-                    log('TX characteristic not found. Connect to the device first.');
-                    return;
-                }
+                
 
-                // Appeler la fonction sendDataCommand pour envoyer la commande "measure"
-                await sendDataCommand();
+                // Envoyer l'heure actuelle une fois au début
+                await sendCurrentTime();
+
+                // Appeler la fonction sendInfoCommand pour envoyer la commande "info"
+                await sendInfoCommand();
 
                 // Journaliser le succès
-                log('Command sent: measure');
+                log('Command sent: INFO');
             } catch (error) {
                 log(`Error sending command: ${error.message}`);
             }
@@ -701,6 +700,23 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
             const command = encoder.encode('_MEASURE\n'); // Commande à envoyer
             await txCharacteristic.writeValue(command);
             log('Command sent: MEASURE');
+        } catch (error) {
+            log(`Error sending command: ${error.message}`);
+        }
+        }
+
+        // Fonction pour envoyer une commande pour recuperer les donneés dispositif
+        async function sendInfoCommand() {
+        try {
+            if (!txCharacteristic) {
+                log('TX characteristic not found. Connect to the device first.');
+                return;
+            }
+
+            const encoder = new TextEncoder();
+            const command = encoder.encode('_INFO\n'); // Commande à envoyer
+            await txCharacteristic.writeValue(command);
+            log('Command sent: INFO');
         } catch (error) {
             log(`Error sending command: ${error.message}`);
         }
