@@ -1,4 +1,10 @@
 <?php
+
+// Empêche la mise en cache des pages
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
 // Activer l'affichage des erreurs pour le debug
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);

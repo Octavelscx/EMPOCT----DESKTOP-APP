@@ -1,4 +1,17 @@
 <?php
+session_start();
+
+// Empêche la mise en cache des pages
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
+// Vérifie si l'utilisateur est connecté
+if (!isset($_SESSION['id_user'])) {
+    header('Location: index.php');
+    exit();
+}
+
 // Connexion à la base de données
 $host = "localhost";
 $dbname = "empoct_app_medecin";
@@ -15,12 +28,6 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     echo json_encode(["success" => false, "message" => "Erreur de connexion : " . $e->getMessage()]);
-    exit();
-}
-
-// Vérifie si l'utilisateur est connecté
-if (!isset($_SESSION['id_user'])) {
-    header('Location: index.php');
     exit();
 }
 

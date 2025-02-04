@@ -1,18 +1,23 @@
 <?php
 session_start();
 
-// Connexion à la base de données
-$host = 'localhost';
-$dbname = 'empoct_app_medecin';
-$username = 'root';
-$password = '';
-
+// Empêche la mise en cache des pages
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 
 // Vérifie si l'utilisateur est connecté
 if (!isset($_SESSION['id_user'])) {
     header('Location: index.php');
     exit();
 }
+
+// Connexion à la base de données
+$host = 'localhost';
+$dbname = 'empoct_app_medecin';
+$username = 'root';
+$password = '';
+
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
