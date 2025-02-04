@@ -207,6 +207,8 @@ if (!empty($data['id_patient']) && !empty($data['date']) && !empty($data['descri
             flex: 1;
         }
 
+        
+
         .stats div:nth-child(1) {
             color: #0073E6; /* Moyenne en bleu */
         }
@@ -425,8 +427,15 @@ if (!empty($data['id_patient']) && !empty($data['date']) && !empty($data['descri
         <div class="main-content">
             <div class="buttons">
                 <button id="connect-btn">Connecter</button>
-                <button id="send-command-btn">Envoyer Commande</button>
+                <button id="send-info-btn"> Infos Dispositif</button>
                 <button id="display-data-btn" disabled class="disabled">Afficher données</button>
+
+                <div class="device-info">
+                    <h2>Informations du Dispositif</h2>
+                    <p><strong>Espace restant :</strong> <span id="device-space">--</span> %</p>
+                    <p><strong>Batterie :</strong> <span id="device-battery">--</span> %</p>
+                </div>
+
             </div>
             <div class="log" id="log-output">
                 <!-- Logs apparaîtront ici -->
@@ -491,7 +500,7 @@ if (!empty($data['id_patient']) && !empty($data['date']) && !empty($data['descri
 
     <script>
         const connectBtn = document.getElementById('connect-btn');
-        const sendCommandBtn = document.getElementById('send-command-btn');
+        const sendInfoBtn = document.getElementById('send-info-btn');
         const displayDataBtn = document.getElementById('display-data-btn');
 
         const logOutput = document.getElementById('log-output');
@@ -614,7 +623,7 @@ if (!empty($data['id_patient']) && !empty($data['date']) && !empty($data['descri
                 device.addEventListener('gattserverdisconnected', () => {
                     log('Device disconnected.');
                     //stopSendingData();
-                    sendCommandBtn.disabled = true; // Désactiver le bouton d'envoi manuel
+                    sendInfoBtn.disabled = true; // Désactiver le bouton d'envoi manuel
                 });
 
                 // Accéder au service Nordic UART
@@ -664,6 +673,16 @@ if (!empty($data['id_patient']) && !empty($data['date']) && !empty($data['descri
                             // Appeler la fonction pour stocker les données
                             storeData(data);
 
+                            // Vérifier si les données correspondent aux informations du dispositif
+                            if (data.space !== undefined && data.battery !== undefined) {
+                                document.getElementById('device-space').textContent = data.space;
+                                document.getElementById('device-battery').textContent = data.battery;
+
+                                log(`Espace restant : ${data.space} %`);
+                                log(`Batterie : ${data.battery} %`);
+                            }
+
+
                         } catch (error) {
                             log(`Error parsing received data: ${error.message}`);
                         }
@@ -685,19 +704,18 @@ if (!empty($data['id_patient']) && !empty($data['date']) && !empty($data['descri
         });
 
         // Associer le bouton "Envoyer Commande" à l'envoi de la commande "measure"
-        sendCommandBtn.addEventListener('click', async () => {
+        sendInfoBtn.addEventListener('click', async () => {
             try {
-                // Vérifier si txCharacteristic est défini
-                if (!txCharacteristic) {
-                    log('TX characteristic not found. Connect to the device first.');
-                    return;
-                }
+                
 
-                // Appeler la fonction sendDataCommand pour envoyer la commande "measure"
-                await sendDataCommand();
+                // Envoyer l'heure actuelle une fois au début
+                await sendCurrentTime();
+
+                // Appeler la fonction sendInfoCommand pour envoyer la commande "info"
+                await sendInfoCommand();
 
                 // Journaliser le succès
-                log('Command sent: measure');
+                log('Command sent: INFO');
             } catch (error) {
                 log(`Error sending command: ${error.message}`);
             }
@@ -725,6 +743,23 @@ if (!empty($data['id_patient']) && !empty($data['date']) && !empty($data['descri
             const command = encoder.encode('_MEASURE\n'); // Commande à envoyer
             await txCharacteristic.writeValue(command);
             log('Command sent: MEASURE');
+        } catch (error) {
+            log(`Error sending command: ${error.message}`);
+        }
+        }
+
+        // Fonction pour envoyer une commande pour recuperer les donneés dispositif
+        async function sendInfoCommand() {
+        try {
+            if (!txCharacteristic) {
+                log('TX characteristic not found. Connect to the device first.');
+                return;
+            }
+
+            const encoder = new TextEncoder();
+            const command = encoder.encode('_INFO\n'); // Commande à envoyer
+            await txCharacteristic.writeValue(command);
+            log('Command sent: INFO');
         } catch (error) {
             log(`Error sending command: ${error.message}`);
         }
@@ -806,22 +841,7 @@ if (!empty($data['id_patient']) && !empty($data['date']) && !empty($data['descri
 
 
 
-        // Envoyer une commande
-        sendCommandBtn.addEventListener('click', async () => {
-            try {
-                if (!txCharacteristic) {
-                    log('TX characteristic not found. Connect to the device first.');
-                    return;
-                }
-
-                const encoder = new TextEncoder();
-                const command = encoder.encode('Hello Feather'); // Exemple de commande à envoyer
-                await txCharacteristic.writeValue(command);
-                log('Command sent successfully: Hello Feather');
-            } catch (error) {
-                log(`Error sending command: ${error.message}`);
-            }
-        });
+        
 
         function updateStats() {
             if (ppbValues.length === 0) return;

@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mdp = trim($_POST['mdp']);
 
     // Requête pour récupérer l'utilisateur
-    $stmt = $pdo->prepare("SELECT * FROM User WHERE id_connexion = :id_connexion AND statut = 0");
+    $stmt = $pdo->prepare("SELECT * FROM user WHERE id_connexion = :id_connexion AND statut = 0");
     $stmt->bindParam(':id_connexion', $id_connexion, PDO::PARAM_STR);
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
