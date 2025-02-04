@@ -1,6 +1,11 @@
 <?php
 session_start();
 
+// Empêche la mise en cache des pages
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
 // Connexion à la base de données
 $host = 'localhost';
 $dbname = 'empoct_app_medecin';
