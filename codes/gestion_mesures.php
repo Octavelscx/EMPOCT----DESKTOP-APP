@@ -18,6 +18,12 @@ try {
     exit();
 }
 
+// Vérifie si l'utilisateur est connecté
+if (!isset($_SESSION['id_user'])) {
+    header('Location: index.php');
+    exit();
+}
+
 // Vérifier si les données sont bien envoyées
 $data = json_decode(file_get_contents("php://input"), true);
 if (isset($data['id_patient'], $data['date'], $data['description'])) {
@@ -215,6 +221,9 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
         <a href="profil.php">Mon tableau de bord</a>
         <a href="gestion_mesures.html">Mes patients</a>
         <a href="configuration.html">Configuration</a>
+        <li class="nav-item">
+            <a class="nav-link" href="deconnexion.php" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Déconnexion</a>
+        </li>
     </header>
 
     <div class="container">
@@ -231,6 +240,9 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                 <h2>Rapports</h2>
                 <ul id="reportList">
                     <!-- Les rapports du patient seront affichés ici -->
+                    <div>
+
+                    </div>
                 </ul>
                 <button id="addReportBtn">Rédiger un rapport</button>
             </div>

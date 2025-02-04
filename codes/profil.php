@@ -14,6 +14,12 @@ try {
     die("Erreur de connexion : " . $e->getMessage());
 }
 
+// Vérifie si l'utilisateur est connecté
+if (!isset($_SESSION['id_user'])) {
+    header('Location: index.php');
+    exit();
+}
+
 // Vérification de l'utilisateur connecté
 $nom_utilisateur = "";
 $prenom_utilisateur = "";
@@ -150,9 +156,11 @@ foreach ($appointments as $appointment) {
                 <a class="navbar-brand" class="nav-link active" href="profil.php">Mon Tableau de Bord</a>
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link" href="modif_infos.php">Mon espace</a></li>
                         <li class="nav-item"><a class="nav-link" href="gestion_mesures.php">Mes patients</a></li>
                         <li class="nav-item"><a class="nav-link" href="configuration.html">Configuration</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="deconnexion.php" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Déconnexion</a>
+                        </li>
                     </ul>
                 </div>
             </div>

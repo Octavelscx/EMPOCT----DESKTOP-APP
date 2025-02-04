@@ -7,12 +7,6 @@ $dbname = 'empoct_app_medecin';
 $username = 'root';
 $password = '';
 
-/*
-// Vérifie si l'utilisateur est connecté
-if (!isset($_SESSION['id_user'])) {
-    header('Location: connexionAdmin.php');
-    exit();
-}*/
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
@@ -22,6 +16,11 @@ try {
 }
 
 
+// Vérifie si l'utilisateur est connecté
+if (!isset($_SESSION['id_user'])) {
+    header('Location: index.php');
+    exit();
+}
 
 // Vérification de l'utilisateur connecté
 $nom_utilisateur = "";
@@ -84,8 +83,11 @@ $professionnels = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <a class="navbar-brand" href="#">Mon Tableau de Bord</a>
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link active" href="profilAdmin.php">Mon espace</a></li>
                         <li class="nav-item"><a class="nav-link" href="gererComptes.php">Gérer les comptes</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="deconnexion.php" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Déconnexion</a>
+                        </li>
+
                     </ul>
                 </div>
             </div>
