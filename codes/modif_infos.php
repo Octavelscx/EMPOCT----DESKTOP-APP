@@ -39,6 +39,9 @@ if (isset($_SESSION['id_user'])) {
     }
 }
 
+// Déterminer la page de redirection en fonction du statut de l'utilisateur
+$profilPage = ($user['statut'] == 1) ? "profilAdmin.php" : "profil.php";
+
     if ($user) {
         $statut = $user['statut'];
         $profilPage = ($statut == 1) ? "profilAdmin.php" : "profil.php";
@@ -113,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modify_user'])) {
         <!-- Barre de navigation -->
         <nav class="navbar navbar-expand-lg">
             <div class="container">
-                <a class="navbar-brand" href="profil.php">Mon Tableau de Bord</a>
+                <a class="navbar-brand" href="<?= $ProfilPage ?>">Mon Tableau de Bord</a>
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">

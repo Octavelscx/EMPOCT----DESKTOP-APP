@@ -12,15 +12,13 @@ if (!isset($_SESSION['id_user'])) {
     exit();
 }
 
+ini_set('display_errors', 0);
+
 // Connexion à la base de données
 $host = "localhost";
 $dbname = "empoct_app_medecin";
 $username = "root";
 $password = "";
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 
 try {
@@ -33,7 +31,7 @@ try {
 
 // Vérifier si les données sont bien envoyées
 $data = json_decode(file_get_contents("php://input"), true);
-if (isset($data['id_patient'], $data['date'], $data['description'])) {
+if (!empty($data['id_patient']) && !empty($data['date']) && !empty($data['description'])) {
     $id_patient = $data['id_patient'];
     $date = $data['date'];
     $description = $data['description'];
@@ -260,7 +258,6 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                     
                     <!-- Titre de la fenêtre modale avec icône -->
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="icon.png" alt="Icon" style="width: 24px; height: 24px;">
                         <h2>Rédiger un rapport</h2>
                     </div>
                     
@@ -299,7 +296,15 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                 const reportText = document.getElementById("reportText");
                 const patientList = document.getElementById("patientList"); // Liste des patients
                 
-                let currentPatientId = null;
+                var currentPatientId = null;  // var permet une portée globale
+
+                patientList.addEventListener("click", function(event) {
+                    const selectedPatient = event.target;
+                    if (selectedPatient.dataset.id) {
+                        currentPatientId = selectedPatient.dataset.id;
+                        console.log("Patient sélectionné ID:", currentPatientId);
+                    }
+                });
             
                 // Mettre à jour currentPatientId lorsqu'un patient est sélectionné
                 if (patientList) {
@@ -315,6 +320,7 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                 // Chargement des rapports du patient sélectionné
                 function loadReports(patientId) {
                     currentPatientId = patientId;
+                    console.log(currentPatientId);
                     fetch(`./get_reports.php?id_patient=${patientId}`)
                         .then(response => response.json())
                         .then(data => {
@@ -339,6 +345,7 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                         return;
                     }
                     reportModal.style.display = "flex";
+                    console.log("Patient actuel : " + currentPatientId);
                 });
             
                 // Fermer la fenêtre modale lorsqu'on clique sur "Annuler"
@@ -360,11 +367,20 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                         return;
                     }
                     
+                    console.log(currentPatientId);
                     fetch("./save_report.php", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ id_patient: currentPatientId, date, description })
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            id_patient: currentPatientId,
+                            date: reportDate.value,
+                            description: reportText.value
+                        })
+                        
                     })
+
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -382,6 +398,7 @@ if (isset($data['id_patient'], $data['date'], $data['description'])) {
                 // Vérifie les données envoyées
                     console.log("Données envoyées :", { id_patient: currentPatientId, date, description });
 
+                    console.log(currentPatientId);
                     fetch("save_report.php", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
