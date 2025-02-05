@@ -29,7 +29,7 @@ try {
 $nom_utilisateur = "";
 $prenom_utilisateur = "";
 if (isset($_SESSION['id_user'])) {
-    $stmt = $pdo->prepare("SELECT nom, prenom FROM User WHERE id_user = :id_user");
+    $stmt = $pdo->prepare("SELECT nom, prenom, statut FROM User WHERE id_user = :id_user");
     $stmt->bindParam(':id_user', $_SESSION['id_user'], PDO::PARAM_INT);
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modify_user'])) {
         <!-- Barre de navigation -->
         <nav class="navbar navbar-expand-lg">
             <div class="container">
-                <a class="navbar-brand" href="<?= $ProfilPage ?>">Mon Tableau de Bord</a>
+                <a class="navbar-brand" href="<?= $profilPage ?>">Mon Tableau de Bord</a>
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
