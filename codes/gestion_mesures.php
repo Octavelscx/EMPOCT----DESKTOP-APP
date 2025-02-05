@@ -227,7 +227,7 @@ if (!empty($data['id_patient']) && !empty($data['date']) && !empty($data['descri
     <header>
         <a href="profil.php">Mon tableau de bord</a>
         <a href="gestion_mesures.html">Mes patients</a>
-        <a href="configuration.html">Configuration</a>
+        <a href="configuration.php">Configuration</a>
         <li class="nav-item">
             <a class="nav-link" href="deconnexion.php" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Déconnexion</a>
         </li>

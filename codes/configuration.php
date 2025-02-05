@@ -1,3 +1,18 @@
+<?php
+session_start();
+
+// Empêche la mise en cache des pages
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
+// Vérifie si l'utilisateur est connecté
+if (!isset($_SESSION['id_user'])) {
+    header('Location: index.php');
+    exit();
+}
+
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -86,7 +101,7 @@
     <header>
         <a href="profil.php">Mon espace</a>
         <a href="gestion_mesures.php">Mes patients</a>
-        <a href="configuration.html">Configuration</a>
+        <a href="">Configuration</a>
     </header>
 
     <div class="container">

@@ -68,6 +68,19 @@ foreach ($appointments as $appointment) {
     $day = date('j', strtotime($appointment['date_rdv']));
     $rdvs_by_day[$day][] = $appointment;
 }
+
+// Récupération des 5 prochains rendez-vous à venir
+$query = $pdo->prepare("
+    SELECT r.date_rdv, r.heure, r.description, p.nom_patient, p.prenom_patient
+    FROM rendezvous r
+    JOIN patients p ON r.id_patient = p.id_patient
+    WHERE r.date_rdv >= CURDATE()
+    ORDER BY r.date_rdv ASC, r.heure ASC
+    LIMIT 5
+");
+$query->execute();
+$next_appointments = $query->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 
@@ -162,7 +175,7 @@ foreach ($appointments as $appointment) {
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item"><a class="nav-link" href="gestion_mesures.php">Mes patients</a></li>
-                        <li class="nav-item"><a class="nav-link" href="configuration.html">Configuration</a></li>
+                        <li class="nav-item"><a class="nav-link" href="configuration.php">Configuration</a></li>
                         <li class="nav-item">
                             <a class="nav-link" href="deconnexion.php" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Déconnexion</a>
                         </li>
@@ -256,22 +269,26 @@ foreach ($appointments as $appointment) {
             </div>
         
 
-            <!-- Dernières visites -->
+            <!-- Section Derniers Rendez-vous -->
             <div class="col-md-6">
                 <div class="card custom-card visites">
-                    <div class="card-header bg-success text-white">Dernières visites</div>
+                    <div class="card-header bg-success text-white">Prochains rendez-vous</div>
                     <div class="card-body">
-                        <?php foreach ($patients as $patient): ?>
-                            <div class="d-flex justify-content-between align-items-center p-2 mb-2" style="background-color: #B0D8F8; border-radius: 10px;">
-                                <span><?= htmlspecialchars($patient['nom_patient'] . ' ' . $patient['prenom_patient']) ?></span>
-                                <span><?= htmlspecialchars($patient['date_debut']) ?></span>
-                                <span>10h</span>
-                            </div>
-                        <?php endforeach; ?>
+                        <?php if (!empty($next_appointments)): ?>
+                            <?php foreach ($next_appointments as $rdv): ?>
+                                <div class="d-flex justify-content-between align-items-center p-2 mb-2" style="background-color: #B0D8F8; border-radius: 10px;">
+                                    <span><?= htmlspecialchars($rdv['nom_patient'] . ' ' . $rdv['prenom_patient']) ?></span>
+                                    <span><?= htmlspecialchars($rdv['date_rdv']) ?></span>
+                                    <span><?= htmlspecialchars($rdv['heure']) ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <p>Aucun rendez-vous à venir.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
-        </div>
+
 
          <!-- Section Mon Compte -->
          <div class="row mt-4">
